@@ -59,7 +59,7 @@ app.get('/api/tf/countrybirth', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.CountryBirth
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.CountryBirth IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -69,7 +69,7 @@ app.get('/api/tf/countrybirth', async (req, res) => {
       .input('real', sql.NVarChar, woman.CountryBirth)
       .query(`
         SELECT TOP 1 CountryBirth
-        FROM Woman
+        FROM WomanClean
         WHERE CountryBirth != @real
           AND CountryBirth IS NOT NULL
         ORDER BY NEWID()
@@ -93,7 +93,7 @@ app.get('/api/tf/fieldstudy', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.FieldStudy
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.FieldStudy IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -103,7 +103,7 @@ app.get('/api/tf/fieldstudy', async (req, res) => {
       .input('real', sql.NVarChar, woman.FieldStudy)
       .query(`
         SELECT TOP 1 FieldStudy
-        FROM Woman
+        FROM WomanClean
         WHERE FieldStudy != @real
           AND FieldStudy IS NOT NULL
         ORDER BY NEWID()
@@ -127,7 +127,7 @@ app.get('/api/tf/innovationcategory', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 i.InnovationName, i.Category
-      FROM Innovation i
+      FROM InnovationClean i
       WHERE i.Category IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -137,7 +137,7 @@ app.get('/api/tf/innovationcategory', async (req, res) => {
       .input('real', sql.NVarChar, innovation.Category)
       .query(`
         SELECT TOP 1 Category
-        FROM Innovation
+        FROM InnovationClean
         WHERE Category != @real
           AND Category IS NOT NULL
         ORDER BY NEWID()
@@ -160,7 +160,7 @@ app.get('/api/tf/birthyear', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.BirthYear
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.BirthYear IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -194,7 +194,7 @@ app.get('/api/tf/nationality', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.Nationality
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.Nationality IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -204,7 +204,7 @@ app.get('/api/tf/nationality', async (req, res) => {
       .input('real', sql.NVarChar, woman.Nationality)
       .query(`
         SELECT TOP 1 Nationality
-        FROM Woman
+        FROM WomanClean
         WHERE Nationality != @real
           AND Nationality IS NOT NULL
         ORDER BY NEWID()
@@ -215,6 +215,43 @@ app.get('/api/tf/nationality', async (req, res) => {
       lastName:   woman.LastName,
       realValue:  woman.Nationality,
       wrongValue: distractor.recordset[0].Nationality
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/tf/institution', async (req, res) => {
+  try {
+    const db = await getPool()
+
+    const real = await db.request().query(`
+      SELECT TOP 1 w.FirstName, w.LastName, w.InstitutionCorporation
+      FROM WomanClean w
+      WHERE w.InstitutionCorporation IS NOT NULL
+        AND w.InstitutionCorporation != ''
+        AND LOWER(w.InstitutionCorporation) != 'none'
+      ORDER BY NEWID()
+    `)
+    const woman = real.recordset[0]
+
+    const distractor = await db.request()
+      .input('real', sql.NVarChar, woman.InstitutionCorporation)
+      .query(`
+        SELECT TOP 1 InstitutionCorporation
+        FROM WomanClean
+        WHERE InstitutionCorporation != @real
+          AND InstitutionCorporation IS NOT NULL
+          AND InstitutionCorporation != ''
+          AND LOWER(InstitutionCorporation) != 'none'
+        ORDER BY NEWID()
+      `)
+
+    res.json({
+      firstName:  woman.FirstName,
+      lastName:   woman.LastName,
+      realValue:  woman.InstitutionCorporation,
+      wrongValue: distractor.recordset[0].InstitutionCorporation
     })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -233,7 +270,7 @@ app.get('/api/mc/fieldstudy', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.FieldStudy
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.FieldStudy IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -243,7 +280,7 @@ app.get('/api/mc/fieldstudy', async (req, res) => {
       .input('real', sql.NVarChar, woman.FieldStudy)
       .query(`
         SELECT TOP 3 FieldStudy
-        FROM Woman
+        FROM WomanClean
         WHERE FieldStudy != @real
           AND FieldStudy IS NOT NULL
         ORDER BY NEWID()
@@ -267,7 +304,7 @@ app.get('/api/mc/countrybirth', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.CountryBirth
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.CountryBirth IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -301,7 +338,7 @@ app.get('/api/mc/innovationcategory', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 i.InnovationName, i.Category
-      FROM Innovation i
+      FROM InnovationClean i
       WHERE i.Category IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -311,7 +348,7 @@ app.get('/api/mc/innovationcategory', async (req, res) => {
       .input('real', sql.NVarChar, innovation.Category)
       .query(`
         SELECT TOP 3 Category
-        FROM Innovation
+        FROM InnovationClean
         WHERE Category != @real
           AND Category IS NOT NULL
         ORDER BY NEWID()
@@ -334,8 +371,10 @@ app.get('/api/mc/institution', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.InstitutionCorporation
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.InstitutionCorporation IS NOT NULL
+        AND w.InstitutionCorporation != ''
+        AND w.InstitutionCorporation != 'none'
       ORDER BY NEWID()
     `)
     const woman = real.recordset[0]
@@ -344,9 +383,11 @@ app.get('/api/mc/institution', async (req, res) => {
       .input('real', sql.NVarChar, woman.InstitutionCorporation)
       .query(`
         SELECT TOP 3 InstitutionCorporation
-        FROM Woman
+        FROM WomanClean
         WHERE InstitutionCorporation != @real
           AND InstitutionCorporation IS NOT NULL
+          AND InstitutionCorporation != ''
+          AND InstitutionCorporation != 'none'
         ORDER BY NEWID()
       `)
 
@@ -368,7 +409,7 @@ app.get('/api/mc/birthyear', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.BirthYear
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.BirthYear IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -402,7 +443,7 @@ app.get('/api/mc/nationality', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.Nationality
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.Nationality IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -412,7 +453,7 @@ app.get('/api/mc/nationality', async (req, res) => {
       .input('real', sql.NVarChar, woman.Nationality)
       .query(`
         SELECT TOP 3 Nationality
-        FROM Woman
+        FROM WomanClean
         WHERE Nationality != @real
           AND Nationality IS NOT NULL
         ORDER BY NEWID()
@@ -435,9 +476,9 @@ app.get('/api/mc/whoinvented', async (req, res) => {
     const db = await getPool()
 
     const real = await db.request().query(`
-      SELECT TOP 1 i.InnovationName, w.FirstName, w.LastName, w.WomanID
-      FROM Innovation i
-      JOIN Woman w ON w.WomanID = i.ConnectedWoman
+      SELECT TOP 1 i.InnovationName, i.InnovationDescription, w.FirstName, w.LastName, w.WomanID
+      FROM InnovationClean i
+      JOIN WomanClean w ON w.WomanID = i.ConnectedWoman
       WHERE i.InnovationName IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -455,6 +496,7 @@ app.get('/api/mc/whoinvented', async (req, res) => {
 
     res.json({
       innovationName: row.InnovationName,
+      description: row.InnovationDescription,
       correctAnswer:  `${row.FirstName} ${row.LastName}`,
       distractors:    distractors.recordset.map(r => `${r.FirstName} ${r.LastName}`)
     })
@@ -469,9 +511,9 @@ app.get('/api/mc/whatdidsheinvent', async (req, res) => {
     const db = await getPool()
 
     const real = await db.request().query(`
-      SELECT TOP 1 w.FirstName, w.LastName, w.WomanID, i.InnovationName
-      FROM Woman w
-      JOIN Innovation i ON w.WomanID = i.ConnectedWoman
+      SELECT TOP 1 w.FirstName, w.LastName, w.WomanID, i.InnovationName, i.InnovationDescription
+      FROM WomanClean w
+      JOIN InnovationClean i ON w.WomanID = i.ConnectedWoman
       WHERE i.InnovationName IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -481,7 +523,7 @@ app.get('/api/mc/whatdidsheinvent', async (req, res) => {
       .input('realId', sql.Int, row.WomanID)
       .query(`
         SELECT TOP 3 InnovationName
-        FROM Innovation
+        FROM InnovationClean
         WHERE ConnectedWoman != @realId
           AND InnovationName IS NOT NULL
         ORDER BY NEWID()
@@ -490,6 +532,7 @@ app.get('/api/mc/whatdidsheinvent', async (req, res) => {
     res.json({
       firstName:      row.FirstName,
       lastName:       row.LastName,
+      description: row.InnovationDescription,
       correctAnswer:  row.InnovationName,
       distractors:    distractors.recordset.map(r => r.InnovationName)
     })
@@ -505,8 +548,8 @@ app.get('/api/mc/nationalitycontribution', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.Nationality, w.WomanID, i.Category
-      FROM Woman w
-      JOIN Innovation i ON w.WomanID = i.ConnectedWoman
+      FROM WomanClean w
+      JOIN InnovationClean i ON w.WomanID = i.ConnectedWoman
       WHERE w.Nationality IS NOT NULL
         AND i.Category IS NOT NULL
       ORDER BY NEWID()
@@ -543,8 +586,8 @@ app.get('/api/mc/innovationcategoryjoin', async (req, res) => {
 
     const real = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, i.Category
-      FROM Woman w
-      JOIN Innovation i ON w.WomanID = i.ConnectedWoman
+      FROM WomanClean w
+      JOIN InnovationClean i ON w.WomanID = i.ConnectedWoman
       WHERE i.Category IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -554,7 +597,7 @@ app.get('/api/mc/innovationcategoryjoin', async (req, res) => {
       .input('real', sql.NVarChar, row.Category)
       .query(`
         SELECT DISTINCT TOP 3 Category
-        FROM Innovation
+        FROM InnovationClean
         WHERE Category != @real
           AND Category IS NOT NULL
         ORDER BY NEWID()
@@ -582,7 +625,7 @@ app.get('/api/fitb/countrybirth', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.CountryBirth
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.CountryBirth IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -599,7 +642,7 @@ app.get('/api/fitb/fieldstudy', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.FieldStudy
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.FieldStudy IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -616,7 +659,7 @@ app.get('/api/fitb/birthyear', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.BirthYear
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.BirthYear IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -633,7 +676,7 @@ app.get('/api/fitb/nationality', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.Nationality
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.Nationality IS NOT NULL
       ORDER BY NEWID()
     `)
@@ -650,8 +693,10 @@ app.get('/api/fitb/institution', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 w.FirstName, w.LastName, w.InstitutionCorporation
-      FROM Woman w
+      FROM WomanClean w
       WHERE w.InstitutionCorporation IS NOT NULL
+        AND w.InstitutionCorporation != ''
+        AND w.InstitutionCorporation != 'none'
       ORDER BY NEWID()
     `)
     const w = result.recordset[0]
@@ -666,14 +711,14 @@ app.get('/api/fitb/whatdidsheinvent', async (req, res) => {
   try {
     const db = await getPool()
     const result = await db.request().query(`
-      SELECT TOP 1 w.FirstName, w.LastName, i.InnovationName
-      FROM Woman w
-      JOIN Innovation i ON w.WomanID = i.ConnectedWoman
+      SELECT TOP 1 w.FirstName, w.LastName, i.InnovationName, i.InnovationDescription
+      FROM WomanClean w
+      JOIN InnovationClean i ON w.WomanID = i.ConnectedWoman
       WHERE i.InnovationName IS NOT NULL
       ORDER BY NEWID()
     `)
     const r = result.recordset[0]
-    res.json({ firstName: r.FirstName, lastName: r.LastName, correctAnswer: r.InnovationName })
+    res.json({ firstName: r.FirstName, lastName: r.LastName, description: r.InnovationDescription, correctAnswer: r.InnovationName })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -684,15 +729,16 @@ app.get('/api/fitb/whoinvented', async (req, res) => {
   try {
     const db = await getPool()
     const result = await db.request().query(`
-      SELECT TOP 1 w.FirstName, w.LastName, i.InnovationName
-      FROM Woman w
-      JOIN Innovation i ON w.WomanID = i.ConnectedWoman
+      SELECT TOP 1 w.FirstName, w.LastName, i.InnovationName, i.InnovationDescription
+      FROM WomanClean w
+      JOIN InnovationClean i ON w.WomanID = i.ConnectedWoman
       WHERE i.InnovationName IS NOT NULL
       ORDER BY NEWID()
     `)
     const r = result.recordset[0]
     res.json({
       innovationName: r.InnovationName,
+      description: r.InnovationDescription,
       correctAnswer:  `${r.FirstName} ${r.LastName}`
     })
   } catch (err) {
@@ -700,22 +746,6 @@ app.get('/api/fitb/whoinvented', async (req, res) => {
   }
 })
 
-// GET /api/fitb/innovationcategory
-app.get('/api/fitb/innovationcategory', async (req, res) => {
-  try {
-    const db = await getPool()
-    const result = await db.request().query(`
-      SELECT TOP 1 i.InnovationName, i.Category
-      FROM Innovation i
-      WHERE i.Category IS NOT NULL
-      ORDER BY NEWID()
-    `)
-    const r = result.recordset[0]
-    res.json({ innovationName: r.InnovationName, correctAnswer: r.Category })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
 
 // GET /api/fitb/coinventor
 app.get('/api/fitb/coinventor', async (req, res) => {
@@ -723,7 +753,7 @@ app.get('/api/fitb/coinventor', async (req, res) => {
     const db = await getPool()
     const result = await db.request().query(`
       SELECT TOP 1 i.InnovationName, i.CoInventor
-      FROM Innovation i
+      FROM InnovationClean i
       WHERE i.CoInventor IS NOT NULL
         AND i.CoInventor != ''
       ORDER BY NEWID()

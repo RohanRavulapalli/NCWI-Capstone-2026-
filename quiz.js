@@ -54,7 +54,7 @@ async function startQuiz(difficulty) {
 // =============================================================
 // LOAD QUESTIONS
 // Picks 5 random endpoints for the chosen difficulty,
-// fetches them all in parallel, and builds question objects
+// fetches them all, and builds question objects
 // =============================================================
 async function loadQuestions(difficulty) {
   const pool    = shuffle([...QUESTION_POOLS[difficulty]])
@@ -89,19 +89,39 @@ const QUESTION_POOLS = {
         isTrue
       )
     },
-    async () => {
-      const d = await get('/tf/innovationcategory')
-      const isTrue = coinFlip()
-      return tfQuestion(
-        `${d.innovationName} falls under the ${isTrue ? d.realValue : d.wrongValue} category.`,
-        isTrue
-      )
-    },
+    // TAKE OUT?
+    //async () => {
+      //const d = await get('/tf/innovationcategory')
+      //const isTrue = coinFlip()
+      //return tfQuestion(
+        //`${d.innovationName} falls under the ${isTrue ? d.realValue : d.wrongValue} category.`,
+        //isTrue
+      //)
+    //},
     async () => {
       const d = await get('/tf/birthyear')
       const isTrue = coinFlip()
       return tfQuestion(
         `${d.firstName} ${d.lastName} was born in ${isTrue ? d.realValue : d.wrongValue}.`,
+        isTrue
+      )
+    },
+    async () => {
+      const d = await get('/tf/institution')
+      if (!d.realValue || !d.wrongValue ||
+          d.realValue.toLowerCase() === 'none' ||
+          d.wrongValue.toLowerCase() === 'none') {
+        // Fall back to a different question type if data is bad
+        const fallback = await get('/tf/nationality')
+        const isTrue = coinFlip()
+        return tfQuestion(
+          `${fallback.firstName} ${fallback.lastName} is ${isTrue ? fallback.realValue : fallback.wrongValue} by nationality.`,
+          isTrue
+        )
+      }
+      const isTrue = coinFlip()
+      return tfQuestion(
+        `${d.firstName} ${d.lastName} was associated with ${isTrue ? d.realValue : d.wrongValue}.`,
         isTrue
       )
     },
@@ -131,13 +151,15 @@ const QUESTION_POOLS = {
         d.correctAnswer, d.distractors
       )
     },
-    async () => {
-      const d = await get('/mc/innovationcategory')
-      return mcQuestion(
-        `What category does ${d.innovationName} fall under?`,
-        d.correctAnswer, d.distractors
-      )
-    },
+    //async () => {
+      //const d = await get('/mc/innovationcategory')
+      //return mcQuestion(
+        //`What category does ${d.innovationName} fall under?`,
+        //d.correctAnswer, d.distractors
+      //)
+    //},
+    
+    // For this one, you're going to have to make sure the distractors or answers aren't 'none'
     async () => {
       const d = await get('/mc/institution')
       return mcQuestion(
@@ -159,20 +181,23 @@ const QUESTION_POOLS = {
         d.correctAnswer, d.distractors
       )
     },
+    //going to have to make sure this is completed
+    //maybe go with the invention description?
     async () => {
-      const d = await get('/mc/whoinvented')
-      return mcQuestion(
-        `Who invented ${d.innovationName}?`,
-        d.correctAnswer, d.distractors
-      )
-    },
-    async () => {
-      const d = await get('/mc/whatdidsheinvent')
-      return mcQuestion(
-        `Which innovation did ${d.firstName} ${d.lastName} create?`,
-        d.correctAnswer, d.distractors
-      )
-    },
+    const d = await get('/mc/whoinvented')
+    return mcQuestion(
+      `"${d.description}" — Who is this innovation attributed to?`,
+      d.correctAnswer, d.distractors
+    )
+  },
+    //join
+    //async () => {
+    //const d = await get('/mc/whatdidsheinvent')
+    //return mcQuestion(
+      //`Which of ${d.firstName} ${d.lastName}'s innovations is described as follows: "${d.description}"`,
+      //d.correctAnswer, d.distractors
+    //)
+  //},
     async () => {
       const d = await get('/mc/nationalitycontribution')
       return mcQuestion(
@@ -193,7 +218,7 @@ const QUESTION_POOLS = {
   hard: [
     async () => {
       const d = await get('/fitb/countrybirth')
-      return fitbQuestion(`${d.firstName} ${d.lastName} was born in _____.`, d.correctAnswer)
+      return fitbQuestion(`${d.firstName} ${d.lastName} was born in the country _____.`, d.correctAnswer)
     },
     async () => {
       const d = await get('/fitb/fieldstudy')
@@ -201,32 +226,35 @@ const QUESTION_POOLS = {
     },
     async () => {
       const d = await get('/fitb/birthyear')
-      return fitbQuestion(`${d.firstName} ${d.lastName} was born in _____.`, d.correctAnswer)
+      return fitbQuestion(`${d.firstName} ${d.lastName} was born in the year _____.`, d.correctAnswer)
     },
     async () => {
       const d = await get('/fitb/nationality')
       return fitbQuestion(`${d.firstName} ${d.lastName} is _____ by nationality.`, d.correctAnswer)
     },
+    //async () => {
+      //const d = await get('/fitb/institution')
+      //return fitbQuestion(`${d.firstName} ${d.lastName} was associated with _____.`, d.correctAnswer)
+    //},
+    //async () => {
+      //const d = await get('/fitb/whatdidsheinvent')
+      //return fitbQuestion(`${d.firstName} ${d.lastName} invented _____.`, d.correctAnswer)
+    //},
     async () => {
-      const d = await get('/fitb/institution')
-      return fitbQuestion(`${d.firstName} ${d.lastName} was associated with _____.`, d.correctAnswer)
-    },
-    async () => {
-      const d = await get('/fitb/whatdidsheinvent')
-      return fitbQuestion(`${d.firstName} ${d.lastName} invented _____.`, d.correctAnswer)
-    },
-    async () => {
-      const d = await get('/fitb/whoinvented')
-      return fitbQuestion(`_____ invented ${d.innovationName}.`, d.correctAnswer)
-    },
-    async () => {
-      const d = await get('/fitb/innovationcategory')
-      return fitbQuestion(`${d.innovationName} falls under the _____ category.`, d.correctAnswer)
-    },
-    async () => {
-      const d = await get('/fitb/coinventor')
-      return fitbQuestion(`${d.innovationName} was co-invented with _____.`, d.correctAnswer)
-    }
+    const d = await get('/fitb/whoinvented')
+    return fitbQuestion(
+      `"${d.description}" — This innovation is attributed to _____.`,
+      d.correctAnswer
+    )
+  }
+    // going to have to gram innovation description (to go with the name)
+    //async () => {
+    //const d = await get('/fitb/whatdidsheinvent')
+    //return fitbQuestion(
+      //`${d.firstName} ${d.lastName} is known for this innovation: "${d.description}" — What is it called? _____.`,
+      //d.correctAnswer
+    //)
+  //}
   ]
 }
 
@@ -456,7 +484,7 @@ function shareResults() {
   const total = quizQuestions.length
   const pct   = Math.round((score / total) * 100)
   copyToClipboard(
-    `I scored ${score}/${total} (${pct}%) on the NCWI Women in STEM Quiz! 🏆 Test your knowledge at ncwi.org`,
+    `I scored ${score}/${total} (${pct}%) on the NCWI Women in STEM Quiz! 🏆 Test your knowledge at womensinnovations.org`,
     'share-confirm'
   )
 }
